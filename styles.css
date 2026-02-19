@@ -1,12 +1,12 @@
-/* styles.css — Light Neon Animated Theme */
+/* styles.css — Light Neon Animated Theme (drop-in) */
 :root{
   --bg-1: #f6fbff;
   --bg-2: #eef7ff;
   --card: rgba(255,255,255,0.75);
   --glass: rgba(255,255,255,0.6);
-  --accent-a: #7c5cff;    /* purple */
-  --accent-b: #00f0ff;    /* cyan */
-  --neon: #ff4d9e;        /* pink neon */
+  --accent-a: #7c5cff;
+  --accent-b: #00f0ff;
+  --neon: #ff4d9e;
   --muted: #6b7280;
   --text: #071023;
   --radius: 14px;
@@ -28,14 +28,14 @@ body{
     radial-gradient(800px 400px at 10% 10%, rgba(124,92,255,0.06), transparent 8%),
     radial-gradient(700px 350px at 90% 90%, rgba(0,240,255,0.04), transparent 10%),
     linear-gradient(180deg,var(--bg-1), var(--bg-2));
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display:block;
   padding:28px;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
 }
 
 /* App container */
-#app{width:100%;max-width:var(--maxw)}
+#app{width:100%;max-width:var(--maxw);margin:28px auto}
 
 /* Card surface */
 .card{
