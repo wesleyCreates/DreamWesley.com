@@ -59,6 +59,7 @@ function handleNav(action){
   else if(action === 'temp2'){ renderTempMailV2(); }
   else if(action === 'supergrow'){ renderSuperGrow(); }
   else if(action === 'supergrow-status'){ renderSuperGrowStatus(); }
+  else if(action === 'cardgen'){ renderCardGenerator(); }
   else if(action === 'telegram'){ window.open('https://t.me/DreamWesley','_blank'); }
   else if(action === 'website'){ window.open('https://earnplan2026.blogspot.com/','_blank'); }
 }
@@ -343,3 +344,37 @@ function unsubscribeNotifications(){
 
 /* Utility */
 function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderCardGenerator(){
+  panel.innerHTML = `
+    <h3>Card Generator</h3>
+    <div class="card" style="padding:20px">
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div style="flex:1;min-width:240px">
+          <h4>Form Generator</h4>
+          <form-generator></form-generator>
+        </div>
+        <div style="flex:1;min-width:240px">
+          <h4>Generated Cards</h4>
+          <generated-credit-cards></generated-credit-cards>
+          <button type="button" class="btn primary" onclick="copyCards()">Copy Cards</button>
+        </div>
+      </div>
+      <p class="muted small" style="margin-top:12px">
+        Developed by <a href="https://t.me/facebook_autopay_akr" target="_blank">(AKR) 💥 Facebook autopay & Threshold by Adsterra</a>
+      </p>
+    </div>
+  `;
+}
+
+// Copy function
+function copyCards(){
+  const textarea = document.querySelector("textarea");
+  if(textarea){
+    textarea.select();
+    document.execCommand('copy');
+    alert("Cards copied to clipboard!");
+  } else {
+    alert("No cards found to copy.");
+  }
+}
