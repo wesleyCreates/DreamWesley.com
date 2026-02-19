@@ -4,21 +4,22 @@
   --accent-a: #00f0ff;
   --accent-b: #7c5cff;
   --neon-pink: #ff4d9e;
-  --neon-green: #00ff9d;
   --text: #f0f7ff;
   --muted: #9aa4b2;
-  --radius: 14px;
+  --radius: 16px;
 }
 
+/* Background gradient + neon blobs */
 body {
   margin: 0;
   font-family: Inter, system-ui, sans-serif;
   color: var(--text);
   background: linear-gradient(180deg, var(--bg1), var(--bg2));
-  overflow-x: hidden;
+  height: 100vh;
+  overflow: hidden;
 }
 
-/* Neon background container */
+/* Neon glow balls */
 body::before, body::after {
   content: '';
   position: fixed;
@@ -41,157 +42,30 @@ body::after {
   right: -10%;
 }
 
-/* Floating arrows */
-.arrow {
-  position: fixed;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(90deg,var(--accent-a),var(--accent-b));
-  clip-path: polygon(0 50%, 100% 0, 100% 100%);
-  opacity: 0.3;
-  animation: drift 25s linear infinite;
-  z-index: -1;
-}
-.arrow:nth-child(1){ top:20%; left:10%; animation-delay:0s;}
-.arrow:nth-child(2){ top:60%; left:80%; animation-delay:10s;}
-.arrow:nth-child(3){ top:40%; left:50%; animation-delay:5s;}
-
 @keyframes float {
   0% { transform: translateY(0) scale(1);}
   100% { transform: translateY(-60px) scale(1.2);}
 }
-@keyframes drift {
-  0% { transform: translate(0,0) rotate(0deg);}
-  100% { transform: translate(-200px,200px) rotate(360deg);}
-}
 
-/* App container */
-#app { max-width: 1200px; margin: 0 auto; padding: 24px; }
-
-/* Card */
-.card {
-  background: rgba(255,255,255,0.05);
-  border-radius: var(--radius);
-  padding: 16px;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.1);
-  transition: transform .2s ease, box-shadow .2s ease;
-}
-.card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-
-/* Topbar */
-.topbar {
-  display:flex; justify-content:space-between; align-items:center;
-  margin-bottom:18px;
-}
-.brand {
-  font-weight:800; font-size:20px;
-  background: linear-gradient(90deg,var(--accent-a),var(--accent-b));
-  -webkit-background-clip:text; color:transparent;
-}
-.actions { display:flex; gap:12px; align-items:center; }
-
-/* Buttons */
-.btn {
-  padding:8px 12px; border-radius:10px; border:none; cursor:pointer;
-  font-weight:600; transition: transform .15s ease;
-}
-.btn.primary {
-  background: linear-gradient(90deg,var(--accent-a),var(--accent-b));
-  color:white; animation: neonPulse 4s infinite;
-}
-.btn.ghost {
-  background: rgba(255,255,255,0.1); color: var(--muted);
-}
-.btn:hover { transform: translateY(-3px); }
-
-@keyframes neonPulse {
-  0%,100% { box-shadow: 0 0 10px var(--accent-a); }
-  50% { box-shadow: 0 0 20px var(--accent-b); }
-}
-
-/* Layout */
-.split { display:grid; grid-template-columns:1fr 360px; gap:20px; }
-.panel { display:flex; flex-direction:column; gap:14px; }
-
-.embed iframe {
-  width:100%; height:320px; border-radius:12px; border:none;
-  box-shadow:0 12px 30px rgba(0,0,0,0.5);
-}
-
-/* Uploads list */
-.videoList { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px; }
-.videoList li { display:flex; gap:12px; align-items:center; transition: transform .15s ease; }
-.videoList li:hover { transform: translateX(6px); }
-.videoList img { width:140px; height:80px; border-radius:10px; object-fit:cover; }
-.videoList strong { font-size:14px; }
-
-/* Right nav */
-.nav { display:flex; flex-direction:column; gap:10px; }
-.navBtn {
-  padding:12px; border-radius:12px; background:rgba(255,255,255,0.1);
-  border:none; cursor:pointer; font-weight:700; color:var(--text);
-  transition: background .15s ease;
-}
-.navBtn:hover {
-  background: linear-gradient(90deg,var(--accent-a),var(--accent-b));
-  color:white;
-}
-
-/* Notification badge */
-.notifBadge {
-  position:absolute; top:-6px; right:-6px;
-  background: var(--neon-pink); color:white;
-  border-radius:50%; padding:4px 7px; font-size:12px; font-weight:700;
-}
-
-/* Professional Google Sign-in button */
-#googleSignIn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 20px;
-  border-radius: 50px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 15px;
-  color: white;
-  background: linear-gradient(90deg, var(--accent-a), var(--accent-b));
-  box-shadow: 0 0 12px rgba(124,92,255,0.6), 0 0 24px rgba(0,240,255,0.4);
-  transition: transform .2s ease, box-shadow .2s ease;
-}
-
-#googleSignIn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 0 18px rgba(124,92,255,0.8), 0 0 36px rgba(0,240,255,0.6);
-}
-
-/* Optional: add Google logo inside the button */
-#googleSignIn::before {
-  content: '';
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  background: url('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg') no-repeat center;
-  background-size: contain;
-}
-
-/* Login card styling */
+/* Centered login card */
 #login-screen {
-  max-width: 420px;       /* keep it compact */
-  margin: 80px auto;      /* center with space above/below */
-  padding: 32px 24px;
-  border-radius: 16px;
+  max-width: 420px;
+  width: 90%;
+  padding: 40px 28px;
+  border-radius: var(--radius);
   background: rgba(255,255,255,0.08);
   backdrop-filter: blur(12px);
   box-shadow: 0 12px 40px rgba(0,0,0,0.4);
   text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 #login-screen h1 {
-  margin-bottom: 12px;
-  font-size: 26px;
+  margin-bottom: 16px;
+  font-size: 28px;
   font-weight: 800;
   background: linear-gradient(90deg,var(--accent-a),var(--accent-b));
   -webkit-background-clip: text;
@@ -203,7 +77,36 @@ body::after {
   color: var(--muted);
 }
 
+/* Professional Google sign-in button */
 #googleSignIn {
-  width: 100%;            /* full width inside card */
-  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+  padding: 12px 20px;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15px;
+  color: white;
+  background: linear-gradient(90deg, var(--accent-a), var(--accent-b));
+  box-shadow: 0 0 12px rgba(124,92,255,0.6), 0 0 24px rgba(0,240,255,0.4);
+  transition: transform .2s ease, box-shadow .2s ease;
+  margin-top: 20px;
+}
+
+#googleSignIn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 18px rgba(124,92,255,0.8), 0 0 36px rgba(0,240,255,0.6);
+}
+
+#googleSignIn::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: url('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg') no-repeat center;
+  background-size: contain;
 }
