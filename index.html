@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <title>SuperGrow</title>
@@ -7,37 +7,72 @@
   <link rel="stylesheet" href="styles.css" />
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <div id="app">
-    <div id="login-screen" class="centered">
+    <div id="login-screen" class="centered card">
       <h1>SuperGrow</h1>
-      <button id="googleSignIn">Sign in with Google</button>
+      <p class="muted">Sign in with Google to continue</p>
+      <button id="googleSignIn" class="btn primary">Sign in with Google</button>
+      <p class="small muted">Only authenticated users can access the dashboard.</p>
     </div>
 
     <div id="dashboard" style="display:none">
-      <header>
-        <button id="signOut">Sign out</button>
+      <header class="topbar">
+        <div class="brand">SuperGrow</div>
+        <div class="actions">
+          <span id="userEmail" class="muted"></span>
+          <button id="signOut" class="btn ghost">Sign out</button>
+        </div>
       </header>
+
       <main class="split">
-        <section id="left">
-          <div id="liveEmbed"></div>
-          <h3>Recent uploads</h3>
-          <ul id="videoList"></ul>
+        <section id="left" class="panel">
+          <div class="liveWrap card">
+            <h3>Live Stream</h3>
+            <div id="liveEmbed" class="embed"></div>
+          </div>
+
+          <div class="uploads card">
+            <h3>Recent uploads</h3>
+            <ul id="videoList" class="videoList"></ul>
+          </div>
         </section>
-        <aside id="right">
-          <nav>
-            <button data-action="temp1">TempMail Generator V1</button>
-            <button data-action="temp2">TempMail Generator V2</button>
-            <button data-action="supergrow">SuperGrow</button>
-            <button data-action="telegram">Telegram</button>
-            <button data-action="website">Website</button>
+
+        <aside id="right" class="panel">
+          <nav class="nav card">
+            <button data-action="temp1" class="navBtn">TempMail Generator V1</button>
+            <button data-action="temp2" class="navBtn">TempMail Generator V2</button>
+            <button data-action="supergrow" class="navBtn">SuperGrow</button>
+            <button data-action="telegram" class="navBtn">Telegram</button>
+            <button data-action="website" class="navBtn">Website</button>
           </nav>
-          <div id="panel"></div>
+
+          <div id="panel" class="card panelContent">
+            <h3>Welcome</h3>
+            <p class="muted">Choose an option to continue.</p>
+          </div>
         </aside>
       </main>
     </div>
   </div>
+
+  <script>
+    // Paste your Firebase config and keys here (you provided them)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAziySpTGBFnuKlOgxU_J8Wj4ayIQTWgcM",
+      authDomain: "dreamwesleyv3.firebaseapp.com",
+      projectId: "dreamwesleyv3",
+      storageBucket: "dreamwesleyv3.firebasestorage.app",
+      messagingSenderId: "139126708891",
+      appId: "1:139126708891:web:d62d83e69f15aff058443e",
+      measurementId: "G-90NFLJY93S"
+    };
+    // YouTube values (you provided)
+    const YT_API_KEY = 'AIzaSyAg1P-qW64LMpEeqSEWG8NB5pEaCUwqNPY';
+    const YT_CHANNEL_ID = 'UCtG_xHdHu7L8JGfLf7-I8Nw';
+  </script>
 
   <script src="app.js"></script>
 </body>
