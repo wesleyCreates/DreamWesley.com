@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>SuperGrow Admin</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="centered card" style="max-width:900px;margin:24px auto">
+    <h2>Admin Panel — SuperGrow</h2>
+    <p class="muted">Sign in with the admin account to manage user statuses.</p>
+    <div id="adminArea">
+      <button id="adminSignIn" class="btn primary">Sign in as Admin</button>
+    </div>
+  </div>
+
+  <script>
+    // same firebaseConfig as index.html
+    const firebaseConfig = {
+      apiKey: "AIzaSyAziySpTGBFnuKlOgxU_J8Wj4ayIQTWgcM",
+      authDomain: "dreamwesleyv3.firebaseapp.com",
+      projectId: "dreamwesleyv3",
+      storageBucket: "dreamwesleyv3.firebasestorage.app",
+      messagingSenderId: "139126708891",
+      appId: "1:139126708891:web:d62d83e69f15aff058443e",
+      measurementId: "G-90NFLJY93S"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  <script src="admin.js"></script>
+</body>
+</html>
