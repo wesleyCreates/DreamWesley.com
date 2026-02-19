@@ -7,7 +7,7 @@ const loginScreen = document.getElementById('login-screen');
 const dashboard = document.getElementById('dashboard');
 const googleBtn = document.getElementById('googleSignIn');
 const signOutBtn = document.getElementById('signOut');
-const userEmailSpan = document.getElementById('userEmail');
+const signedInText = document.getElementById('signedInText');
 
 const panel = document.getElementById('panel');
 const navButtons = document.querySelectorAll('[data-action]');
@@ -16,7 +16,7 @@ auth.onAuthStateChanged(user => {
   if (user) {
     loginScreen.style.display = 'none';
     dashboard.style.display = 'block';
-    userEmailSpan.textContent = user.email;
+    signedInText.textContent = 'Signed in';
     loadYouTubeSection();
   } else {
     loginScreen.style.display = 'flex';
@@ -47,44 +47,89 @@ function handleNav(action){
     renderTempMailV2();
   } else if(action === 'supergrow'){
     renderSuperGrow();
+  } else if(action === 'supergrow-status'){
+    renderSuperGrowStatus();
   } else if(action === 'telegram'){
     window.open('https://t.me/DreamWesley','_blank');
   } else if(action === 'website'){
     window.open('https://earnplan2026.blogspot.com/','_blank');
+  } else if(action === 'admin'){
+    // open admin page in new tab
+    window.open('admin.html','_blank');
   }
 }
 
 /* -------------------------
-   YouTube: embed + recent uploads
+   YouTube: channel info, live fallback, thumbnails
    ------------------------- */
 async function loadYouTubeSection(){
-  // Live embed
-  document.getElementById('liveEmbed').innerHTML =
-    `<iframe src="https://www.youtube.com/embed/live_stream?channel=${YT_CHANNEL_ID}" frameborder="0" allowfullscreen></iframe>`;
-
-  // Fetch recent uploads (search endpoint)
   try {
-    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?key=${YT_API_KEY}&channelId=${YT_CHANNEL_ID}&part=snippet,id&order=date&maxResults=8`);
-    const data = await res.json();
-    const list = document.getElementById('videoList');
-    list.innerHTML = '';
-    (data.items || []).forEach(item => {
-      if (item.id.kind === 'youtube#video') {
-        const li = document.createElement('li');
-        li.innerHTML = `<a href="https://www.youtube.com/watch?v=${item.id.videoId}" target="_blank">${item.snippet.title}</a>`;
-        list.appendChild(li);
+    // 1) Get channel snippet (title, logo)
+    const chRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${YT_CHANNEL_ID}&key=${YT_API_KEY}`);
+    const chData = await chRes.json();
+    const ch = (chData.items && chData.items[0]) ? chData.items[0] : null;
+    const channelHeader = document.getElementById('channelHeader');
+    if(ch){
+      const title = ch.snippet.title;
+      const logo = ch.snippet.thumbnails.default.url;
+      channelHeader.innerHTML = `<div style="display:flex;align-items:center;gap:12px">
+        <img src="${logo}" alt="${escapeHtml(title)}" style="width:48px;height:48px;border-radius:8px"/>
+        <div><strong>${escapeHtml(title)}</strong></div>
+      </div>`;
+    }
+
+    // 2) Check for live broadcast
+    const liveRes = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${YT_CHANNEL_ID}&eventType=live&type=video&key=${YT_API_KEY}`);
+    const liveData = await liveRes.json();
+    let embedVideoId = null;
+
+    if(liveData.items && liveData.items.length > 0){
+      // channel is live — use the first live video
+      embedVideoId = liveData.items[0].id.videoId;
+    } else {
+      // not live — fetch latest uploaded video
+      const recentRes = await fetch(`https://www.googleapis.com/youtube/v3/search?key=${YT_API_KEY}&channelId=${YT_CHANNEL_ID}&part=snippet,id&order=date&maxResults=8`);
+      const recentData = await recentRes.json();
+      if(recentData.items && recentData.items.length > 0){
+        // find first video item
+        const firstVideo = recentData.items.find(i => i.id.kind === 'youtube#video');
+        if(firstVideo) embedVideoId = firstVideo.id.videoId;
+        renderVideoList(recentData.items);
       }
-    });
+    }
+
+    // 3) Embed video (live or latest)
+    const liveEmbed = document.getElementById('liveEmbed');
+    if(embedVideoId){
+      liveEmbed.innerHTML = `<iframe src="https://www.youtube.com/embed/${embedVideoId}" frameborder="0" allowfullscreen></iframe>`;
+    } else {
+      liveEmbed.innerHTML = `<div class="muted">No videos available</div>`;
+    }
   } catch (err) {
-    console.error('YouTube fetch error', err);
+    console.error('YouTube error', err);
   }
 }
 
+function renderVideoList(items){
+  const list = document.getElementById('videoList');
+  list.innerHTML = '';
+  (items || []).forEach(item => {
+    if(item.id.kind === 'youtube#video'){
+      const vid = item.id.videoId;
+      const title = item.snippet.title;
+      const thumb = item.snippet.thumbnails.medium ? item.snippet.thumbnails.medium.url : (item.snippet.thumbnails.default ? item.snippet.thumbnails.default.url : '');
+      const li = document.createElement('li');
+      li.innerHTML = `<a href="https://www.youtube.com/watch?v=${vid}" target="_blank" style="display:flex;gap:10px;align-items:center">
+        <img src="${thumb}" alt="${escapeHtml(title)}" style="width:120px;height:68px;object-fit:cover;border-radius:6px"/>
+        <div style="flex:1"><strong style="display:block;color:#e6eef8">${escapeHtml(title)}</strong></div>
+      </a>`;
+      list.appendChild(li);
+    }
+  });
+}
+
 /* -------------------------
-   TempMail V2 (DEMO only)
-   - Uses Gmail plus addressing examples
-   - "Generate More" produces new demo aliases
-   - "Choose One" lets user pick an alias and then "Check Inbox" opens Gmail
+   TempMail V2 (DEMO only) — unchanged demo from earlier
    ------------------------- */
 function renderTempMailV2(){
   panel.innerHTML = `
@@ -129,13 +174,11 @@ function renderTempMailV2(){
     }
     const chosen = prompt('Type the alias you choose from the list exactly as shown:');
     if(!chosen) return;
-    // Show Check Inbox option
     aliasesDiv.innerHTML = `<div class="card"><strong>Chosen:</strong> ${escapeHtml(chosen)}<br/><br/>
       <button id="checkInbox" class="btn primary">Check Inbox</button>
       <button id="moreGen" class="btn ghost">Generate More</button>
     </div>`;
     document.getElementById('checkInbox').onclick = () => {
-      // Open Gmail in new tab (user will need to sign in)
       window.open('https://mail.google.com/mail/u/0/#search/from:' + encodeURIComponent(chosen), '_blank');
     };
     document.getElementById('moreGen').onclick = () => {
@@ -170,7 +213,6 @@ function renderTempMailV2(){
   }
 
   function generatePlusAliases(base, count){
-    // Safe demo: produce aliases using plus addressing and short tags
     const [local, domain] = base.split('@');
     const tags = ['promo','demo','sg','grow','test','alpha','beta','news','site','user'];
     const out = [];
@@ -183,11 +225,9 @@ function renderTempMailV2(){
 
   function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 }
-  
+
 /* -------------------------
-   SuperGrow submission flow
-   - Prefills with authenticated user's email
-   - Saves to Firestore collection "supergrow_requests"
+   SuperGrow submission flow (unchanged)
    ------------------------- */
 function renderSuperGrow(){
   const user = auth.currentUser;
@@ -205,7 +245,7 @@ function renderSuperGrow(){
     const sgArea = document.getElementById('sgArea');
     sgArea.innerHTML = `
       <p class="muted">Write the email you logged into your SuperGrow account (prefilled):</p>
-      <input id="sgEmail" value="${user.email}" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#e6eef8" />
+      <input id="sgEmail" value="${auth.currentUser.email}" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#e6eef8" />
       <div style="margin-top:8px"><button id="sgSubmit" class="btn primary">Submit</button></div>
     `;
     document.getElementById('sgSubmit').onclick = async () => {
@@ -213,8 +253,8 @@ function renderSuperGrow(){
       if(!email){ alert('Enter an email'); return; }
       try {
         await db.collection('supergrow_requests').add({
-          userUid: user.uid,
-          userEmail: user.email,
+          userUid: auth.currentUser.uid,
+          userEmail: auth.currentUser.email,
           submittedEmail: email,
           status: 'pending',
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -230,3 +270,37 @@ function renderSuperGrow(){
     panel.querySelector('#sgArea').innerHTML = `<p class="muted">Please log into SuperGrow first, then come back.</p>`;
   };
 }
+
+/* -------------------------
+   SuperGrow Status (reads per-user status)
+   ------------------------- */
+async function renderSuperGrowStatus(){
+  const user = auth.currentUser;
+  if(!user) { alert('Sign in first'); return; }
+  panel.innerHTML = `<h3>SuperGrow Status</h3><div id="statusArea" class="card"><p class="muted">Loading status...</p></div>`;
+  const statusArea = document.getElementById('statusArea');
+  try {
+    const doc = await db.collection('supergrow_statuses').doc(user.uid).get();
+    if(!doc.exists){
+      statusArea.innerHTML = `<p class="muted">No active status found. You can request activation via SuperGrow.</p>`;
+      return;
+    }
+    const data = doc.data();
+    const expiresAt = data.expiresAt ? data.expiresAt.toDate() : null;
+    let remaining = 'Unknown';
+    if(expiresAt){
+      const diff = Math.max(0, Math.floor((expiresAt - new Date()) / (1000*60*60*24)));
+      const months = Math.floor(diff / 30);
+      const days = diff % 30;
+      remaining = months > 0 ? `${months} month(s) ${days} day(s) left` : `${days} day(s) left`;
+    }
+    statusArea.innerHTML = `<div><strong>Status:</strong> ${escapeHtml(data.status || 'inactive')}</div>
+      <div style="margin-top:8px"><strong>Remaining:</strong> ${escapeHtml(remaining)}</div>
+      <div style="margin-top:8px"><strong>Note:</strong> This status is managed by admins.</div>`;
+  } catch(err){
+    console.error(err);
+    statusArea.innerHTML = `<p class="muted">Failed to load status.</p>`;
+  }
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
