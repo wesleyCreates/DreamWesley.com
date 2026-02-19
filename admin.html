@@ -11,7 +11,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
-    // Firebase config (use your project values)
     const firebaseConfig = {
       apiKey: "AIzaSyAziySpTGBFnuKlOgxU_J8Wj4ayIQTWgcM",
       authDomain: "dreamwesleyv3.firebaseapp.com",
@@ -25,17 +24,12 @@
   </script>
 </head>
 <body>
-  <div style="max-width:1100px;margin:28px auto;padding:12px">
-    <div class="card">
-      <h2>Admin Panel — SuperGrow</h2>
-      <div id="adminArea">
-        <p class="muted">Sign in with an admin account to manage users, statuses, and notifications.</p>
-        <button id="adminSignIn" class="btn primary">Sign in as Admin</button>
-      </div>
-    </div>
-    <div id="adminContent" style="display:none;margin-top:16px"></div>
+  <div id="adminArea" class="card" style="max-width:1100px;margin:28px auto">
+    <h2>Admin Panel — SuperGrow</h2>
+    <p class="muted">Sign in with an admin account to manage users, statuses, and notifications.</p>
+    <button id="adminSignIn" class="btn primary">Sign in as Admin</button>
   </div>
-
+  <div id="adminContent" style="display:none;max-width:1100px;margin:28px auto"></div>
   <script src="admin.js"></script>
 </body>
 </html>
