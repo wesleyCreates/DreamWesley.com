@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>DreamWesley</title>
+  <title>SuperGrow</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -11,17 +11,24 @@
 </head>
 <body>
   <div id="app">
+    <!-- Login screen -->
     <div id="login-screen" class="centered card">
-      <h1>DreamWesley</h1>
+      <h1>SuperGrow</h1>
       <p class="muted">Sign in with Google to continue</p>
       <button id="googleSignIn" class="btn primary">Sign in with Google</button>
       <p class="small muted">Only authenticated users can access the dashboard.</p>
     </div>
 
+    <!-- Dashboard -->
     <div id="dashboard" style="display:none">
       <header class="topbar">
-        <div class="brand">DreamWesley</div>
+        <div class="brand">SuperGrow</div>
         <div class="actions">
+          <div id="notifWrap" style="position:relative">
+            <button id="notifBtn" class="btn ghost" aria-label="Notifications">🔔
+              <span id="notifBadge" class="notifBadge" style="display:none">0</span>
+            </button>
+          </div>
           <span id="signedInText" class="muted">Signed in</span>
           <button id="signOut" class="btn ghost">Sign out</button>
         </div>
@@ -30,9 +37,7 @@
       <main class="split">
         <section id="left" class="panel">
           <div class="liveWrap card">
-            <div id="channelHeader" class="channelHeader">
-              <!-- Channel logo + name will be injected here -->
-            </div>
+            <div id="channelHeader" class="channelHeader"></div>
             <div id="liveEmbed" class="embed"></div>
           </div>
 
@@ -46,11 +51,10 @@
           <nav class="nav card">
             <button data-action="temp1" class="navBtn">TempMail Generator V1</button>
             <button data-action="temp2" class="navBtn">TempMail Generator V2</button>
-            <button data-action="supergrow" class="navBtn">SuperGrok</button>
-            <button data-action="supergrow-status" class="navBtn">SuperGrok Status</button>
+            <button data-action="supergrow" class="navBtn">SuperGrow</button>
+            <button data-action="supergrow-status" class="navBtn">SuperGrow Status</button>
             <button data-action="telegram" class="navBtn">Telegram</button>
             <button data-action="website" class="navBtn">Website</button>
-            <button data-action="admin" class="navBtn">Admin Panel</button>
           </nav>
 
           <div id="panel" class="card panelContent">
@@ -62,6 +66,7 @@
     </div>
   </div>
 
+  <!-- Firebase config and YouTube keys (you provided these) -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAziySpTGBFnuKlOgxU_J8Wj4ayIQTWgcM",
