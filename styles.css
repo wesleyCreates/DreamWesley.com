@@ -176,3 +176,34 @@ body::after {
   background: url('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg') no-repeat center;
   background-size: contain;
 }
+
+/* Login card styling */
+#login-screen {
+  max-width: 420px;       /* keep it compact */
+  margin: 80px auto;      /* center with space above/below */
+  padding: 32px 24px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  text-align: center;
+}
+
+#login-screen h1 {
+  margin-bottom: 12px;
+  font-size: 26px;
+  font-weight: 800;
+  background: linear-gradient(90deg,var(--accent-a),var(--accent-b));
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+#login-screen p {
+  margin: 8px 0;
+  color: var(--muted);
+}
+
+#googleSignIn {
+  width: 100%;            /* full width inside card */
+  margin-top: 16px;
+}
