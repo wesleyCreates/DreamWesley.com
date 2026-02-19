@@ -5,19 +5,13 @@
   <title>SuperGrow Admin</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-</head>
-<body>
-  <div class="centered card" style="max-width:1100px;margin:24px auto">
-    <h2>Admin Panel — SuperGrow</h2>
-    <div id="adminArea">
-      <button id="adminSignIn" class="btn primary">Sign in as Admin</button>
-    </div>
-  </div>
-
   <script>
+    // Firebase config (use your project values)
     const firebaseConfig = {
       apiKey: "AIzaSyAziySpTGBFnuKlOgxU_J8Wj4ayIQTWgcM",
       authDomain: "dreamwesleyv3.firebaseapp.com",
@@ -29,6 +23,19 @@
     };
     firebase.initializeApp(firebaseConfig);
   </script>
+</head>
+<body>
+  <div style="max-width:1100px;margin:28px auto;padding:12px">
+    <div class="card">
+      <h2>Admin Panel — SuperGrow</h2>
+      <div id="adminArea">
+        <p class="muted">Sign in with an admin account to manage users, statuses, and notifications.</p>
+        <button id="adminSignIn" class="btn primary">Sign in as Admin</button>
+      </div>
+    </div>
+    <div id="adminContent" style="display:none;margin-top:16px"></div>
+  </div>
+
   <script src="admin.js"></script>
 </body>
 </html>
