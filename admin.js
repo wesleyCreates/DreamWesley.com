@@ -1,51 +1,84 @@
+// admin.js — Admin panel logic
 const auth = firebase.auth();
 const db = firebase.firestore();
+
 const adminArea = document.getElementById('adminArea');
 const adminSignIn = document.getElementById('adminSignIn');
+const adminContent = document.getElementById('adminContent');
 
 adminSignIn.onclick = async () => {
   const provider = new firebase.auth.GoogleAuthProvider();
-  try { await auth.signInWithPopup(provider); renderAdminUI(); }
-  catch(e){ alert('Sign in failed: ' + e.message); }
+  try {
+    await auth.signInWithPopup(provider);
+    renderAdminUI();
+  } catch (e) {
+    alert('Sign in failed: ' + e.message);
+  }
 };
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    // If already signed in, render UI
+    renderAdminUI();
+  } else {
+    adminContent.style.display = 'none';
+    adminArea.style.display = 'block';
+  }
+});
 
 async function renderAdminUI(){
   const user = auth.currentUser;
   if(!user) return;
-  // check admin doc exists
-  const adminDoc = await db.collection('admins').doc(user.uid).get();
-  if(!adminDoc.exists){
-    adminArea.innerHTML = `<p class="muted">You are not an admin. Add your UID to admins collection in Firestore.</p>`;
+
+  // Check admin doc exists
+  try {
+    const adminDoc = await db.collection('admins').doc(user.uid).get();
+    if(!adminDoc.exists){
+      adminArea.innerHTML = `<div class="card"><p class="muted">You are not an admin. Add your UID to the <strong>admins</strong> collection in Firestore.</p>
+        <p class="small muted">Your UID: <code>${user.uid}</code></p>
+        <button id="signOutBtn" class="btn ghost">Sign out</button></div>`;
+      document.getElementById('signOutBtn').onclick = () => auth.signOut().then(()=> location.reload());
+      return;
+    }
+  } catch(err){
+    console.error('admin check failed', err);
+    alert('Failed to verify admin: ' + err.message);
     return;
   }
 
-  adminArea.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div><strong>Admin:</strong> ${escapeHtml(user.email)}</div>
+  // Build admin UI
+  adminArea.style.display = 'none';
+  adminContent.style.display = 'block';
+  adminContent.innerHTML = `
+    <div class="card" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+      <div><strong>Admin:</strong> ${escapeHtml(user.email)}<div class="muted small">UID: ${escapeHtml(user.uid)}</div></div>
       <div><button id="signOutAdmin" class="btn ghost">Sign out</button></div>
     </div>
-    <hr/>
+
     <div style="display:grid;grid-template-columns:1fr 420px;gap:16px">
-      <div>
+      <div class="card">
         <h4>Users</h4>
         <div id="usersList" style="max-height:420px;overflow:auto"></div>
+
         <h4 style="margin-top:12px">Recent Requests</h4>
         <div id="requestsList" style="max-height:220px;overflow:auto"></div>
       </div>
 
-      <div>
+      <div class="card">
         <h4>Set User Status</h4>
-        <input id="targetUid" placeholder="User UID" style="width:100%;padding:8px;margin-bottom:8px"/>
-        <input id="statusText" placeholder="Status (e.g., active)" style="width:100%;padding:8px;margin-bottom:8px"/>
-        <input id="expiryDate" type="date" style="width:100%;padding:8px;margin-bottom:8px"/>
+        <input id="targetUid" placeholder="User UID" style="margin-bottom:8px"/>
+        <input id="statusText" placeholder="Status (e.g., active)" style="margin-bottom:8px"/>
+        <input id="expiryDate" type="date" style="margin-bottom:8px"/>
         <button id="setStatus" class="btn primary">Set Status</button>
 
-        <hr/>
+        <hr style="margin:12px 0"/>
+
         <h4>Send Notification</h4>
-        <input id="notifTitle" placeholder="Title" style="width:100%;padding:8px;margin-bottom:8px"/>
-        <textarea id="notifMsg" placeholder="Message" style="width:100%;padding:8px;height:100px;margin-bottom:8px"></textarea>
-        <input id="notifLink" placeholder="Optional link (https://...)" style="width:100%;padding:8px;margin-bottom:8px"/>
+        <input id="notifTitle" placeholder="Title" style="margin-bottom:8px"/>
+        <textarea id="notifMsg" placeholder="Message" style="height:100px;margin-bottom:8px"></textarea>
+        <input id="notifLink" placeholder="Optional link (https://...)" style="margin-bottom:8px"/>
         <button id="sendNotif" class="btn primary">Send Notification</button>
+
         <div id="adminMsg" style="margin-top:12px"></div>
       </div>
     </div>
@@ -53,8 +86,8 @@ async function renderAdminUI(){
 
   document.getElementById('signOutAdmin').onclick = () => auth.signOut().then(()=> location.reload());
 
-  // load users
-  db.collection('users').orderBy('lastSeen','desc').limit(200).onSnapshot(snap => {
+  // Load users list (profiles written on sign-in)
+  db.collection('users').orderBy('lastSeen','desc').limit(500).onSnapshot(snap => {
     const el = document.getElementById('usersList');
     el.innerHTML = '';
     snap.forEach(doc => {
@@ -65,28 +98,32 @@ async function renderAdminUI(){
       row.style.justifyContent = 'space-between';
       row.style.alignItems = 'center';
       row.style.marginBottom = '8px';
-      row.innerHTML = `<div style="display:flex;gap:10px;align-items:center">
-        <img src="${escapeHtml(d.photoURL||'')}" style="width:44px;height:44px;border-radius:8px;object-fit:cover"/>
-        <div><strong>${escapeHtml(d.displayName||d.email||'User')}</strong><div class="muted" style="font-size:12px">${escapeHtml(d.email||'')}</div></div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:12px" class="muted">UID: ${escapeHtml(d.uid)}</div>
-        <div style="margin-top:6px">
-          <button class="btn ghost setFor" data-uid="${escapeHtml(d.uid)}">Set Status</button>
+      row.innerHTML = `
+        <div style="display:flex;gap:10px;align-items:center">
+          <img src="${escapeHtml(d.photoURL||'')}" style="width:44px;height:44px;border-radius:8px;object-fit:cover"/>
+          <div>
+            <strong>${escapeHtml(d.displayName||d.email||'User')}</strong>
+            <div class="muted small">${escapeHtml(d.email||'')}</div>
+          </div>
         </div>
-      </div>`;
+        <div style="text-align:right">
+          <div class="muted small">UID: ${escapeHtml(d.uid)}</div>
+          <div style="margin-top:6px">
+            <button class="btn ghost setFor" data-uid="${escapeHtml(d.uid)}">Set Status</button>
+          </div>
+        </div>`;
       el.appendChild(row);
     });
 
-    // attach set status handlers
+    // attach handlers
     document.querySelectorAll('.setFor').forEach(b => b.addEventListener('click', e => {
       const uid = e.currentTarget.getAttribute('data-uid');
       document.getElementById('targetUid').value = uid;
     }));
   });
 
-  // load recent requests
-  db.collection('supergrow_requests').orderBy('createdAt','desc').limit(50).onSnapshot(snap => {
+  // Load recent requests
+  db.collection('supergrow_requests').orderBy('createdAt','desc').limit(100).onSnapshot(snap => {
     const el = document.getElementById('requestsList');
     el.innerHTML = '';
     snap.forEach(doc => {
@@ -94,8 +131,13 @@ async function renderAdminUI(){
       const row = document.createElement('div');
       row.className = 'card';
       row.style.marginBottom = '8px';
-      row.innerHTML = `<div><strong>${escapeHtml(d.submittedEmail||'')}</strong><div class="muted" style="font-size:12px">${escapeHtml(d.userEmail||'')}</div></div>
-        <div style="margin-top:8px"><button class="btn ghost setFromReq" data-uid="${escapeHtml(d.userUid)}">Set Status for this user</button></div>`;
+      row.innerHTML = `
+        <div><strong>${escapeHtml(d.submittedEmail||'')}</strong>
+          <div class="muted small">${escapeHtml(d.userEmail||'')}</div>
+        </div>
+        <div style="margin-top:8px">
+          <button class="btn ghost setFromReq" data-uid="${escapeHtml(d.userUid)}">Set Status for this user</button>
+        </div>`;
       el.appendChild(row);
     });
     document.querySelectorAll('.setFromReq').forEach(b => b.addEventListener('click', e => {
@@ -104,6 +146,7 @@ async function renderAdminUI(){
     }));
   });
 
+  // Set status handler
   document.getElementById('setStatus').onclick = async () => {
     const uid = document.getElementById('targetUid').value.trim();
     const status = document.getElementById('statusText').value.trim();
@@ -118,9 +161,13 @@ async function renderAdminUI(){
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       document.getElementById('adminMsg').innerHTML = `<div class="card">Status set for ${escapeHtml(uid)}</div>`;
-    } catch(err){ console.error(err); alert('Failed: ' + err.message); }
+    } catch(err){
+      console.error(err);
+      alert('Failed: ' + err.message);
+    }
   };
 
+  // Send notification handler
   document.getElementById('sendNotif').onclick = async () => {
     const title = document.getElementById('notifTitle').value.trim();
     const msg = document.getElementById('notifMsg').value.trim();
@@ -136,7 +183,10 @@ async function renderAdminUI(){
       document.getElementById('notifTitle').value = '';
       document.getElementById('notifMsg').value = '';
       document.getElementById('notifLink').value = '';
-    } catch(err){ console.error(err); alert('Failed: ' + err.message); }
+    } catch(err){
+      console.error(err);
+      alert('Failed: ' + err.message);
+    }
   };
 }
 
