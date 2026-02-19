@@ -5,41 +5,105 @@ const adminSignIn = document.getElementById('adminSignIn');
 
 adminSignIn.onclick = async () => {
   const provider = new firebase.auth.GoogleAuthProvider();
-  try {
-    await auth.signInWithPopup(provider);
-    renderAdminUI();
-  } catch(e){
-    alert('Sign in failed: ' + e.message);
-  }
+  try { await auth.signInWithPopup(provider); renderAdminUI(); }
+  catch(e){ alert('Sign in failed: ' + e.message); }
 };
 
 async function renderAdminUI(){
   const user = auth.currentUser;
   if(!user) return;
-  // Check if user is in admins collection
+  // check admin doc exists
   const adminDoc = await db.collection('admins').doc(user.uid).get();
   if(!adminDoc.exists){
-    adminArea.innerHTML = `<p class="muted">You are not an admin. Contact the owner to add you.</p>`;
+    adminArea.innerHTML = `<p class="muted">You are not an admin. Add your UID to admins collection in Firestore.</p>`;
     return;
   }
 
   adminArea.innerHTML = `
-    <div style="display:flex;gap:12px;align-items:center">
+    <div style="display:flex;justify-content:space-between;align-items:center">
       <div><strong>Admin:</strong> ${escapeHtml(user.email)}</div>
-      <button id="signOutAdmin" class="btn ghost">Sign out</button>
+      <div><button id="signOutAdmin" class="btn ghost">Sign out</button></div>
     </div>
     <hr/>
-    <div>
-      <h4>Set user SuperGrow status</h4>
-      <input id="targetUid" placeholder="User UID (paste here)" style="width:100%;padding:8px;margin-bottom:8px"/>
-      <input id="statusText" placeholder="Status (e.g., active)" style="width:100%;padding:8px;margin-bottom:8px"/>
-      <input id="expiryDate" type="date" style="width:100%;padding:8px;margin-bottom:8px"/>
-      <button id="setStatus" class="btn primary">Set Status</button>
-      <div id="adminMsg" style="margin-top:12px"></div>
+    <div style="display:grid;grid-template-columns:1fr 420px;gap:16px">
+      <div>
+        <h4>Users</h4>
+        <div id="usersList" style="max-height:420px;overflow:auto"></div>
+        <h4 style="margin-top:12px">Recent Requests</h4>
+        <div id="requestsList" style="max-height:220px;overflow:auto"></div>
+      </div>
+
+      <div>
+        <h4>Set User Status</h4>
+        <input id="targetUid" placeholder="User UID" style="width:100%;padding:8px;margin-bottom:8px"/>
+        <input id="statusText" placeholder="Status (e.g., active)" style="width:100%;padding:8px;margin-bottom:8px"/>
+        <input id="expiryDate" type="date" style="width:100%;padding:8px;margin-bottom:8px"/>
+        <button id="setStatus" class="btn primary">Set Status</button>
+
+        <hr/>
+        <h4>Send Notification</h4>
+        <input id="notifTitle" placeholder="Title" style="width:100%;padding:8px;margin-bottom:8px"/>
+        <textarea id="notifMsg" placeholder="Message" style="width:100%;padding:8px;height:100px;margin-bottom:8px"></textarea>
+        <input id="notifLink" placeholder="Optional link (https://...)" style="width:100%;padding:8px;margin-bottom:8px"/>
+        <button id="sendNotif" class="btn primary">Send Notification</button>
+        <div id="adminMsg" style="margin-top:12px"></div>
+      </div>
     </div>
   `;
 
   document.getElementById('signOutAdmin').onclick = () => auth.signOut().then(()=> location.reload());
+
+  // load users
+  db.collection('users').orderBy('lastSeen','desc').limit(200).onSnapshot(snap => {
+    const el = document.getElementById('usersList');
+    el.innerHTML = '';
+    snap.forEach(doc => {
+      const d = doc.data();
+      const row = document.createElement('div');
+      row.className = 'card';
+      row.style.display = 'flex';
+      row.style.justifyContent = 'space-between';
+      row.style.alignItems = 'center';
+      row.style.marginBottom = '8px';
+      row.innerHTML = `<div style="display:flex;gap:10px;align-items:center">
+        <img src="${escapeHtml(d.photoURL||'')}" style="width:44px;height:44px;border-radius:8px;object-fit:cover"/>
+        <div><strong>${escapeHtml(d.displayName||d.email||'User')}</strong><div class="muted" style="font-size:12px">${escapeHtml(d.email||'')}</div></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px" class="muted">UID: ${escapeHtml(d.uid)}</div>
+        <div style="margin-top:6px">
+          <button class="btn ghost setFor" data-uid="${escapeHtml(d.uid)}">Set Status</button>
+        </div>
+      </div>`;
+      el.appendChild(row);
+    });
+
+    // attach set status handlers
+    document.querySelectorAll('.setFor').forEach(b => b.addEventListener('click', e => {
+      const uid = e.currentTarget.getAttribute('data-uid');
+      document.getElementById('targetUid').value = uid;
+    }));
+  });
+
+  // load recent requests
+  db.collection('supergrow_requests').orderBy('createdAt','desc').limit(50).onSnapshot(snap => {
+    const el = document.getElementById('requestsList');
+    el.innerHTML = '';
+    snap.forEach(doc => {
+      const d = doc.data();
+      const row = document.createElement('div');
+      row.className = 'card';
+      row.style.marginBottom = '8px';
+      row.innerHTML = `<div><strong>${escapeHtml(d.submittedEmail||'')}</strong><div class="muted" style="font-size:12px">${escapeHtml(d.userEmail||'')}</div></div>
+        <div style="margin-top:8px"><button class="btn ghost setFromReq" data-uid="${escapeHtml(d.userUid)}">Set Status for this user</button></div>`;
+      el.appendChild(row);
+    });
+    document.querySelectorAll('.setFromReq').forEach(b => b.addEventListener('click', e => {
+      const uid = e.currentTarget.getAttribute('data-uid');
+      document.getElementById('targetUid').value = uid;
+    }));
+  });
+
   document.getElementById('setStatus').onclick = async () => {
     const uid = document.getElementById('targetUid').value.trim();
     const status = document.getElementById('statusText').value.trim();
@@ -54,11 +118,26 @@ async function renderAdminUI(){
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       document.getElementById('adminMsg').innerHTML = `<div class="card">Status set for ${escapeHtml(uid)}</div>`;
-    } catch(err){
-      console.error(err);
-      alert('Failed: ' + err.message);
-    }
+    } catch(err){ console.error(err); alert('Failed: ' + err.message); }
+  };
+
+  document.getElementById('sendNotif').onclick = async () => {
+    const title = document.getElementById('notifTitle').value.trim();
+    const msg = document.getElementById('notifMsg').value.trim();
+    const link = document.getElementById('notifLink').value.trim();
+    if(!title || !msg){ alert('Title and message required'); return; }
+    try {
+      await db.collection('notifications').add({
+        title, message: msg, link: link || null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: user.uid
+      });
+      document.getElementById('adminMsg').innerHTML = `<div class="card">Notification sent</div>`;
+      document.getElementById('notifTitle').value = '';
+      document.getElementById('notifMsg').value = '';
+      document.getElementById('notifLink').value = '';
+    } catch(err){ console.error(err); alert('Failed: ' + err.message); }
   };
 }
 
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
