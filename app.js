@@ -57,8 +57,8 @@ navButtons.forEach(btn => btn.addEventListener('click', e => {
 function handleNav(action){
   if(action === 'temp1'){ panel.innerHTML = `<h3>TempMail Generator V1</h3><p class="muted">Coming Soon</p>`; }
   else if(action === 'temp2'){ renderTempMailV2(); }
-  else if(action === 'supergrow'){ renderSuperGrow(); }
-  else if(action === 'supergrow-status'){ renderSuperGrowStatus(); }
+  else if(action === 'supergrok'){ renderSupergrok(); }
+  else if(action === 'supergrok-status'){ renderSupergrokStatus(); }
   else if(action === 'cardgen'){ renderCardGenerator(); }
   else if(action === 'telegram'){ window.open('https://t.me/DreamWesley','_blank'); }
   else if(action === 'website'){ window.open('https://earnplan2026.blogspot.com/','_blank'); }
@@ -206,7 +206,7 @@ function renderTempMailV2(){
   function validateGmail(email){ return /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email); }
   function generatePlusAliases(base, count){
     const [local, domain] = base.split('@');
-    const tags = ['promo','demo','sg','grow','test','alpha','beta','news','site','user'];
+    const tags = ['promo','demo','sg','grok','test','alpha','beta','news','site','user'];
     const out = [];
     for(let i=0;i<count;i++){
       const tag = tags[i % tags.length] + (Math.floor(Math.random()*900)+100);
@@ -217,14 +217,14 @@ function renderTempMailV2(){
 }
 
 /* -------------------------
-   SuperGrow submission flow
+   Supergrok submission flow
    ------------------------- */
-function renderSuperGrow(){
+function renderSupergrok(){
   const user = auth.currentUser;
   if(!user) { alert('Sign in first'); return; }
   panel.innerHTML = `
-    <h3>SuperGrow</h3>
-    <p class="muted">Do you logged it SuperGrow?</p>
+    <h3>Supergrok</h3>
+    <p class="muted">Do you logged it Supergrok?</p>
     <div style="display:flex;gap:8px">
       <button id="sgYes" class="btn primary">Yes</button>
       <button id="sgNo" class="btn ghost">No</button>
@@ -234,7 +234,7 @@ function renderSuperGrow(){
   document.getElementById('sgYes').onclick = () => {
     const sgArea = document.getElementById('sgArea');
     sgArea.innerHTML = `
-      <p class="muted">Write the email you logged into your SuperGrow account (prefilled):</p>
+      <p class="muted">Write the email you logged into your Supergrok account (prefilled):</p>
       <input id="sgEmail" value="${auth.currentUser.email}" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#e6eef8" />
       <div style="margin-top:8px"><button id="sgSubmit" class="btn primary">Submit</button></div>
     `;
@@ -242,7 +242,7 @@ function renderSuperGrow(){
       const email = document.getElementById('sgEmail').value.trim();
       if(!email){ alert('Enter an email'); return; }
       try {
-        await db.collection('supergrow_requests').add({
+        await db.collection('supergrok_requests').add({
           userUid: auth.currentUser.uid,
           userEmail: auth.currentUser.email,
           submittedEmail: email,
@@ -257,22 +257,22 @@ function renderSuperGrow(){
     };
   };
   document.getElementById('sgNo').onclick = () => {
-    panel.querySelector('#sgArea').innerHTML = `<p class="muted">Please log into SuperGrow first, then come back.</p>`;
+    panel.querySelector('#sgArea').innerHTML = `<p class="muted">Please log into Supergrok first, then come back.</p>`;
   };
 }
 
 /* -------------------------
-   SuperGrow Status (reads per-user status)
+   Supergrok Status (reads per-user status)
    ------------------------- */
-async function renderSuperGrowStatus(){
+async function renderSupergrokStatus(){
   const user = auth.currentUser;
   if(!user) { alert('Sign in first'); return; }
-  panel.innerHTML = `<h3>SuperGrow Status</h3><div id="statusArea" class="card"><p class="muted">Loading status...</p></div>`;
+  panel.innerHTML = `<h3>Supergrok Status</h3><div id="statusArea" class="card"><p class="muted">Loading status...</p></div>`;
   const statusArea = document.getElementById('statusArea');
   try {
-    const doc = await db.collection('supergrow_statuses').doc(user.uid).get();
+    const doc = await db.collection('supergrok_statuses').doc(user.uid).get();
     if(!doc.exists){
-      statusArea.innerHTML = `<p class="muted">No active status found. You can request activation via SuperGrow.</p>`;
+      statusArea.innerHTML = `<p class="muted">No active status found. You can request activation via Supergrok.</p>`;
       return;
     }
     const data = doc.data();
