@@ -382,7 +382,7 @@ function renderCardGenerator(){
         </div>
       </div>
       <p class="muted small" style="margin-top:12px">
-        Developed by <a href="https://t.me/facebook_autopay_akr" target="_blank">(AKR) 💥 Facebook autopay & Threshold by Adsterra</a>
+        Developed by <a href="https://youtube.com/@dreamwesleyyt?si=UEBx9jKMYEFzE3iz" target="_blank">Wesley💢 The Ai Master</a>
       </p>
     </div>
   `;
