@@ -344,20 +344,41 @@ function unsubscribeNotifications(){
 
 /* Utility */
 function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
 function renderCardGenerator(){
   panel.innerHTML = `
     <h3>Card Generator</h3>
     <div class="card" style="padding:20px">
-      <div style="display:flex;gap:20px;flex-wrap:wrap">
+      <div style="display:flex;flex-wrap:wrap;gap:20px">
         <div style="flex:1;min-width:240px">
-          <h4>Form Generator</h4>
-          <form-generator></form-generator>
+          <label><strong>BIN:</strong></label>
+          <input id="binInput" type="text" placeholder="Enter BIN" style="width:100%;margin-bottom:10px"/>
+
+          <label><strong>Date:</strong></label>
+          <select id="monthSelect" style="width:48%;margin-right:4%"> 
+            <option value="random">Random</option>
+            <option value="01">01</option><option value="02">02</option>
+            <option value="03">03</option><option value="04">04</option>
+            <!-- add up to 12 -->
+          </select>
+          <select id="yearSelect" style="width:48%">
+            <option value="random">Random</option>
+            <option value="2026">2026</option><option value="2027">2027</option>
+            <option value="2028">2028</option>
+          </select>
+
+          <label><strong>CVC:</strong></label>
+          <input id="cvcInput" type="text" placeholder="Random" style="width:100%;margin-bottom:10px"/>
+
+          <label><strong>Quantity:</strong></label>
+          <input id="qtyInput" type="number" value="15" style="width:100%;margin-bottom:10px"/>
+
+          <button class="btn primary" onclick="generateCards()">Generate Cards</button>
         </div>
+
         <div style="flex:1;min-width:240px">
-          <h4>Generated Cards</h4>
-          <generated-credit-cards></generated-credit-cards>
-          <button type="button" class="btn primary" onclick="copyCards()">Copy Cards</button>
+          <label><strong>Result:</strong></label>
+          <textarea id="cardOutput" style="width:100%;height:200px"></textarea>
+          <button class="btn ghost" onclick="copyCards()">Copy Cards</button>
         </div>
       </div>
       <p class="muted small" style="margin-top:12px">
@@ -367,14 +388,31 @@ function renderCardGenerator(){
   `;
 }
 
-// Copy function
+// Generate fake cards
+function generateCards(){
+  const bin = document.getElementById("binInput").value || "400000";
+  const month = document.getElementById("monthSelect").value;
+  const year = document.getElementById("yearSelect").value;
+  const cvc = document.getElementById("cvcInput").value;
+  const qty = parseInt(document.getElementById("qtyInput").value) || 10;
+
+  let output = "";
+  for(let i=0;i<qty;i++){
+    const cardNum = bin + Math.floor(Math.random()*1e10).toString().padStart(10,"0");
+    const mm = month==="random" ? String(Math.floor(Math.random()*12+1)).padStart(2,"0") : month;
+    const yy = year==="random" ? String(2026+Math.floor(Math.random()*5)) : year;
+    const cvv = cvc==="" || cvc.toLowerCase()==="random" ? String(Math.floor(Math.random()*900+100)) : cvc;
+    output += `${cardNum}|${mm}|${yy}|${cvv}\n`;
+  }
+  document.getElementById("cardOutput").value = output;
+}
+
+// Copy cards
 function copyCards(){
-  const textarea = document.querySelector("textarea");
+  const textarea = document.getElementById("cardOutput");
   if(textarea){
     textarea.select();
     document.execCommand('copy');
     alert("Cards copied to clipboard!");
-  } else {
-    alert("No cards found to copy.");
   }
 }
