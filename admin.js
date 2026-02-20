@@ -123,7 +123,7 @@ async function renderAdminUI(){
   });
 
   // Load recent requests
-  db.collection('supergrow_requests').orderBy('createdAt','desc').limit(100).onSnapshot(snap => {
+  db.collection('supergrok_requests').orderBy('createdAt','desc').limit(100).onSnapshot(snap => {
     const el = document.getElementById('requestsList');
     el.innerHTML = '';
     snap.forEach(doc => {
@@ -154,7 +154,7 @@ async function renderAdminUI(){
     if(!uid || !status || !expiry){ alert('Fill all fields'); return; }
     try {
       const expiresAt = new Date(expiry + 'T23:59:59Z');
-      await db.collection('supergrow_statuses').doc(uid).set({
+      await db.collection('supergrok_statuses').doc(uid).set({
         status,
         expiresAt: firebase.firestore.Timestamp.fromDate(expiresAt),
         updatedBy: user.uid,
